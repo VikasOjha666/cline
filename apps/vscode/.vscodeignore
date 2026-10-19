@@ -53,6 +53,10 @@ sdk/**
 README.marketplace.md
 .README.github.bak
 package.json.backup
+# Fork rebrand backup of the ORIGINAL upstream package.json (identity:
+# claude-dev / Cline Bot Inc.). Kept in the tree for reference but must
+# never ship in the VSIX.
+package.json.identity-backup
 
 # Custom
 **/demo.gif

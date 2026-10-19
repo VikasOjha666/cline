@@ -68,7 +68,9 @@ export class PostHogClientProvider {
 			if (frames?.length) {
 				for (let j = 0; j < frames.length; j++) {
 					const fileName = frames[j]?.filename
-					// The extension filename will include "saoudrizwan"
+					// The extension path contains the extension name, which
+					// includes "cline" for both upstream (saoudrizwan.claude-dev)
+					// and this fork (pipeline-fork.cline-pipeline-edition).
 					// The CLI filename will include "cline"
 					if (fileName?.includes("saoudrizwan") || fileName?.includes("cline")) {
 						return event

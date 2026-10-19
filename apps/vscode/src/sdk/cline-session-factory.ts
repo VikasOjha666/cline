@@ -50,6 +50,7 @@ import { nonNegativeFiniteNumber, positiveFiniteNumber, toSdkApiFormat } from ".
 import { parseProviderId } from "./model-catalog/provider-id"
 import { toSdkProviderId } from "./model-catalog/sdk-provider-id"
 import { createProviderConfigStore, resolveRuntimeModelSelection } from "./model-catalog/store"
+import { loadPipelineInstructions } from "./pipeline-instructions"
 import { getProviderSettingsManager } from "./provider-migration"
 import { buildSapProviderConfig, type SapProviderConfig } from "./sap-config"
 import type { SdkSessionHost } from "./session-host"
@@ -1045,6 +1046,48 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 	const compactionStrategy = readCompactionStrategyGlobally()
 	const enableCheckpoints = stateManager.getGlobalSettingsKey("enableCheckpointsSetting") ?? true
 	const useAutoCondense = input.taskSettings?.useAutoCondense ?? globalUseAutoCondense
+	// Fork feature (Cline Pipeline Edition): configured sub-agents from
+	// `.cline/agents/*.yaml` are exposed as `subagent_*` tools. The setting
+	// defaults to TRUE in this fork. Spawning is restricted to act mode: plan
+	// mode sessions never expose delegation tools (neither configured agents
+	// nor the generic `spawn_agent` tool, which the SDK core registers off the
+	// same `enableSpawnAgent` flag when the host supplies `createSpawnTool`).
+	const enableConfiguredSubagents = stateManager.getGlobalSettingsKey("enableConfiguredSubagents") ?? true
+	const spawnAgentEnabled = enableConfiguredSubagents && mode === "act"
+	// CROSS-PROVIDER LIMITATION (v1): configured sub-agents inherit this
+	// session's connection (apiKey/baseUrl via providerConfig below; only
+	// providerId/modelId are overridden per agent YAML). Cross-provider
+	// credential resolution would need a per-providerId resolver here,
+	// paired with the note in sdk/packages/core/.../delegated-agent.ts —
+	// deliberately not implemented in this MVP. Keep `enableAgentTeams: false`.
+
+	// Fork feature: append the pipeline orchestrator instructions to the act
+	// prompt, but only when spawning is actually enabled for this session and
+	// at least one pipeline agent profile resolves. The instructions name the
+	// EXACT `subagent_*` tools the SDK will register for the loaded profiles;
+	// missing profiles degrade to a partial list (or no instructions), never
+	// to tools that don't exist. Plan-mode and disabled sessions never see
+	// this text, matching the tool exposure above.
+	if (spawnAgentEnabled) {
+		try {
+			const pipeline = loadPipelineInstructions(workspaceRoot)
+			for (const warning of pipeline.warnings) {
+				Logger.warn(`[SessionFactory] Pipeline agent config: ${warning}`)
+			}
+			if (pipeline.instructions) {
+				systemPrompt = `${systemPrompt}\n\n${pipeline.instructions}`
+				Logger.log(
+					`[SessionFactory] Injected pipeline instructions for stages: ${pipeline.bindings.map((b) => b.stage).join(", ")}`,
+				)
+			} else {
+				Logger.log(
+					"[SessionFactory] Configured sub-agents enabled but no pipeline agent profiles found; skipping pipeline instructions. Run 'Cline Pipeline Edition: Initialize Pipeline Agents' to install templates.",
+				)
+			}
+		} catch (error) {
+			Logger.warn("[SessionFactory] Failed to inject pipeline instructions:", error)
+		}
+	}
 
 	// Core resolves providers against the SDK registry, which uses the SDK's
 	// own provider id spelling (e.g. "openai-compatible" rather than the
@@ -1117,7 +1160,7 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 		checkpoint: {
 			enabled: enableCheckpoints,
 		},
-		enableSpawnAgent: false,
+		enableSpawnAgent: spawnAgentEnabled,
 		enableAgentTeams: false,
 		...(useAutoCondense
 			? {

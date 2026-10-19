@@ -1614,3 +1614,155 @@ describe("updateHistoryItem", () => {
 		expect(result[1].id).toBe("task-old")
 	})
 })
+
+// ---------------------------------------------------------------------------
+// enableConfiguredSubagents (fork feature) — session-level tool exposure
+// ---------------------------------------------------------------------------
+
+describe("enableConfiguredSubagents", () => {
+	function setSettings(overrides: Record<string, unknown>): void {
+		mocks.stateManager.getGlobalSettingsKey.mockImplementation((key: string) => {
+			if (key in overrides) {
+				return overrides[key] as never
+			}
+			if (key === "subagentsEnabled" || key === "useAutoCondense") {
+				return false
+			}
+			return undefined
+		})
+	}
+
+	async function buildActSession(): Promise<CoreSessionConfig> {
+		return buildSessionConfig({ cwd: "/tmp/workspace", mode: "act" })
+	}
+
+	it("defaults to enabled in act mode when the setting is absent (fork default true)", async () => {
+		setSettings({}) // enableConfiguredSubagents -> undefined
+		const config = await buildActSession()
+		expect(config.enableSpawnAgent).toBe(true)
+		expect(config.enableAgentTeams).toBe(false)
+	})
+
+	it("disables spawn when the setting is explicitly false", async () => {
+		setSettings({ enableConfiguredSubagents: false })
+		const config = await buildActSession()
+		expect(config.enableSpawnAgent).toBe(false)
+	})
+
+	it("keeps spawn disabled in plan mode even when the setting is true", async () => {
+		setSettings({ enableConfiguredSubagents: true })
+		const config = await buildSessionConfig({ cwd: "/tmp/workspace", mode: "plan" })
+		expect(config.enableSpawnAgent).toBe(false)
+	})
+
+	it("always keeps agent teams disabled", async () => {
+		setSettings({ enableConfiguredSubagents: true })
+		const act = await buildActSession()
+		const plan = await buildSessionConfig({ cwd: "/tmp/workspace", mode: "plan" })
+		expect(act.enableAgentTeams).toBe(false)
+		expect(plan.enableAgentTeams).toBe(false)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Pipeline instructions injection (fork feature)
+// ---------------------------------------------------------------------------
+
+describe("pipeline instructions injection", () => {
+	let agentsDir: string
+	let previousClineDir: string | undefined
+
+	function setSettings(overrides: Record<string, unknown>): void {
+		mocks.stateManager.getGlobalSettingsKey.mockImplementation((key: string) => {
+			if (key in overrides) {
+				return overrides[key] as never
+			}
+			if (key === "subagentsEnabled" || key === "useAutoCondense") {
+				return false
+			}
+			return undefined
+		})
+	}
+
+	function writeProfile(name: string, content: string): void {
+		fs.writeFileSync(path.join(agentsDir, `${name}.yaml`), content, "utf8")
+	}
+
+	beforeEach(() => {
+		// Redirect the user-level loader path and create the workspace
+		// .cline/agents dir under the temp workspace root that buildSessionConfig
+		// resolves via input.workspaceRoot.
+		previousClineDir = process.env.CLINE_DIR
+		process.env.CLINE_DIR = path.join(tempDir, "user-cline")
+		agentsDir = path.join(tempDir, "workspace", ".cline", "agents")
+		fs.mkdirSync(agentsDir, { recursive: true })
+	})
+
+	afterEach(() => {
+		process.env.CLINE_DIR = previousClineDir
+	})
+
+	it("injects instructions with exact subagent tool names when all four profiles exist (act mode)", async () => {
+		setSettings({ enableConfiguredSubagents: true })
+		for (const name of ["planner", "generator", "reviewer", "editor"]) {
+			writeProfile(
+				name,
+				`---\nname: ${name}\ndescription: test ${name}\n---\nYou are the ${name}.`,
+			)
+		}
+		const config = await buildSessionConfig({
+			cwd: path.join(tempDir, "workspace"),
+			workspaceRoot: path.join(tempDir, "workspace"),
+			mode: "act",
+		})
+		expect(config.enableSpawnAgent).toBe(true)
+		expect(config.systemPrompt).toContain("Full pipeline sequence")
+		expect(config.systemPrompt).toContain("subagent_planner")
+		expect(config.systemPrompt).toContain("subagent_generator")
+		expect(config.systemPrompt).toContain("subagent_reviewer")
+		expect(config.systemPrompt).toContain("subagent_editor")
+	})
+
+	it("does not inject pipeline instructions when no profiles exist", async () => {
+		setSettings({ enableConfiguredSubagents: true })
+		const config = await buildSessionConfig({
+			cwd: path.join(tempDir, "workspace"),
+			workspaceRoot: path.join(tempDir, "workspace"),
+			mode: "act",
+		})
+		expect(config.systemPrompt).not.toContain("Configured Sub-Agent Pipeline")
+	})
+
+	it("does not inject pipeline instructions in plan mode even with profiles present", async () => {
+		setSettings({ enableConfiguredSubagents: true })
+		for (const name of ["planner", "generator", "reviewer", "editor"]) {
+			writeProfile(
+				name,
+				`---\nname: ${name}\ndescription: test ${name}\n---\nYou are the ${name}.`,
+			)
+		}
+		const config = await buildSessionConfig({
+			cwd: path.join(tempDir, "workspace"),
+			workspaceRoot: path.join(tempDir, "workspace"),
+			mode: "plan",
+		})
+		expect(config.systemPrompt).not.toContain("Configured Sub-Agent Pipeline")
+	})
+
+	it("does not inject pipeline instructions when the setting is disabled", async () => {
+		setSettings({ enableConfiguredSubagents: false })
+		for (const name of ["planner", "generator", "reviewer", "editor"]) {
+			writeProfile(
+				name,
+				`---\nname: ${name}\ndescription: test ${name}\n---\nYou are the ${name}.`,
+			)
+		}
+		const config = await buildSessionConfig({
+			cwd: path.join(tempDir, "workspace"),
+			workspaceRoot: path.join(tempDir, "workspace"),
+			mode: "act",
+		})
+		expect(config.enableSpawnAgent).toBe(false)
+		expect(config.systemPrompt).not.toContain("Configured Sub-Agent Pipeline")
+	})
+})

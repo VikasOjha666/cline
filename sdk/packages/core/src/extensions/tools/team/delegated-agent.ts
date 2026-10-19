@@ -17,6 +17,23 @@ import {
 
 type AgentExtension = NonNullable<AgentConfig["extensions"]>[number];
 
+/**
+ * Connection settings a delegated agent (subagent/teammate) runs with.
+ *
+ * CROSS-PROVIDER LIMITATION (Cline Pipeline Edition fork, v1): these fields
+ * are inherited from the PARENT session's connection (API key, base URL,
+ * headers, provider config). A configured agent YAML may override only
+ * `providerId`/`modelId` (see configured-agent-tool.ts buildAgentRuntimeConfig),
+ * and those IDs must resolve within the parent's provider connection — e.g.
+ * any model served by the parent's local Ollama endpoint. Resolving a
+ * SEPARATE provider's credentials (API key/base URL) for a cross-provider
+ * agent is a future integration point: it would need (1) a credential lookup
+ * keyed by the agent's providerId here in the delegated-agent runtime, and
+ * (2) a VS Code-side provider configuration resolver (see
+ * apps/vscode/src/sdk/cline-session-factory.ts resolveProviderApiKeyFromSettings
+ * and apps/vscode/src/shared/storage/provider-keys.ts) to supply that
+ * provider's stored credentials. Do not put credentials in agent YAML.
+ */
 export type DelegatedAgentConnectionConfig = Pick<
 	AgentConfig,
 	| "providerId"

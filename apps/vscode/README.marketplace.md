@@ -1,27 +1,22 @@
-# Cline
-<div align="center">
-<table>
-<tbody>
-<td align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev" target="_blank"><strong>Download on VS Marketplace</strong></a>
-</td>
-<td align="center">
-<a href="https://discord.gg/cline" target="_blank"><strong>Discord</strong></a>
-</td>
-<td align="center">
-<a href="https://www.reddit.com/r/cline/" target="_blank"><strong>r/cline</strong></a>
-</td>
-<td align="center">
-<a href="https://github.com/cline/cline/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><strong>Feature Requests</strong></a>
-</td>
-<td align="center">
-<a href="https://docs.cline.bot/getting-started/installing-cline" target="_blank"><strong>Getting Started</strong></a>
-</td>
-</tbody>
-</table>
-</div>
+# Cline Pipeline Edition
 
-Meet Cline, an AI assistant that can use your **CLI** a**N**d **E**ditor.
+A fork of [Cline](https://github.com/cline/cline) that adds a **multi-model coding pipeline**: four local-Ollama sub-agents (Planner -> Generator -> Reviewer -> Editor) orchestrated inside a single Act-mode task.
+
+> Independent fork, not affiliated with or endorsed by the official Cline project. All of Cline's features below still apply; upstream attribution and the Apache-2.0 license are preserved.
+
+## Multi-model coding pipeline
+
+Configure four sub-agents, each backed by a different local model (defaults use Qwen Coder 30B for planning/review and 7B for generation/editing):
+
+1. **Planner** explores your codebase and produces a structured plan (read-only).
+2. **Generator** implements the plan (can edit files).
+3. **Reviewer** checks the actual changes against the task and plan, reporting actionable findings (read-only).
+4. **Editor** applies the review fixes (can edit files).
+
+Run **"Cline Pipeline Edition: Initialize Pipeline Agents"** to install editable agent profiles into `.cline/agents/`, then set each profile's `providerId`/`modelId` to models you have locally. The setting **Enable Configured Sub-Agents** (on by default) gates the whole feature. Approving a delegation lets the sub-agent run multiple file operations autonomously.
+
+---
+
 
 Thanks to [Claude Sonnet's agentic coding capabilities](https://www.anthropic.com/claude/sonnet), Cline can handle complex software development tasks step-by-step. With tools that let him create & edit files, explore large projects, use the browser, and execute terminal commands (after you grant permission), he can assist you in ways that go beyond code completion or tech support. Cline can even use the Model Context Protocol (MCP) to create new tools and extend his own capabilities. While autonomous AI scripts traditionally run in sandboxed environments, this extension provides a human-in-the-loop GUI to approve every file change and terminal command, providing a safe and accessible way to explore the potential of agentic AI.
 
@@ -130,13 +125,8 @@ For example, when working with a local web server, you can use 'Restore Workspac
 
 ## Contributing
 
-To contribute to the project, start with our [Contributing Guide](../../CONTRIBUTING.md) to learn the basics. You can also join our [Discord](https://discord.gg/cline) to chat with other contributors in the `#contributors` channel. If you're looking for full-time work, check out our open positions on our [careers page](https://cline.bot/join-us)!
-
-## Enterprise
-
-Get the same Cline experience with enterprise-grade controls: SSO (SAML/OIDC), global policies and configuration, observability with audit trails, private networking (VPC/private link), and self-hosted or on-prem deployments, and enterprise support. Learn more at our [enterprise page](https://cline.bot/enterprise) or [talk to us](https://cline.bot/contact-sales).
-
+This is an independent fork of [Cline](https://github.com/cline/cline). For the underlying extension, start with the upstream [Contributing Guide](https://github.com/cline/cline/blob/main/CONTRIBUTING.md). Pipeline-fork issues and ideas belong in this fork's repository.
 
 ## License
 
-[Apache 2.0 © 2026 Cline Bot Inc.](./LICENSE)
+Derived from [Cline](https://github.com/cline/cline), licensed under [Apache 2.0](./LICENSE). Upstream copyright notices are retained: Apache 2.0 © Cline Bot Inc. Additions in this fork are also licensed under Apache 2.0.

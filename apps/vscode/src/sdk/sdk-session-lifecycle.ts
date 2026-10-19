@@ -12,6 +12,7 @@ import type { VscodeTerminalManager } from "@/hosts/vscode/terminal/VscodeTermin
 import { McpHub } from "@/services/mcp/McpHub"
 import { Logger } from "@/shared/services/Logger"
 import type { ActiveSession } from "./cline-session-factory"
+import { resolveConfiguredAgentToolNames } from "./configured-agent-tools"
 import type { SdkForegroundCommandCoordinator } from "./sdk-foreground-command-coordinator"
 import { buildToolPolicies } from "./sdk-tool-policies"
 import type { SdkSessionHost } from "./session-host"
@@ -176,7 +177,16 @@ export class SdkSessionLifecycle {
 		}
 
 		const autoApprovalSettings = StateManager.get().getGlobalSettingsKey("autoApprovalSettings")
-		const toolPolicies = autoApprovalSettings ? buildToolPolicies(autoApprovalSettings, this.options.mcpHub) : undefined
+		// Configured-agent (`subagent_*`) tools must require approval: the SDK
+		// defaults unlisted tools to auto-approve, so without an explicit policy
+		// entry a delegation would run with no gate at all. Resolve the exact
+		// tool names the SDK will register for this workspace's profiles.
+		const configuredAgentToolNames = resolveConfiguredAgentToolNames(
+			startInput.config?.workspaceRoot ?? startInput.config?.cwd,
+		)
+		const toolPolicies = autoApprovalSettings
+			? buildToolPolicies(autoApprovalSettings, this.options.mcpHub, configuredAgentToolNames)
+			: undefined
 
 		const sdkHost = await this.getOrCreateSharedHost()
 

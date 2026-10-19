@@ -160,6 +160,13 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 			}
 		}
 
+		// Update configured sub-agents setting (fork feature: enables the
+		// subagent_* tools built from .cline/agents/*.yaml profiles). Takes
+		// effect on the next session build; an in-flight turn is not rebuilt.
+		if (request.enableConfiguredSubagents !== undefined) {
+			controller.stateManager.setGlobalState("enableConfiguredSubagents", !!request.enableConfiguredSubagents)
+		}
+
 		// Update auto-condense setting
 		if (request.useAutoCondense !== undefined) {
 			if (controller.task) {

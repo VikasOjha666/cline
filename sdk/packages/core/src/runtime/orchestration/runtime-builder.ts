@@ -112,12 +112,17 @@ const CONFIGURED_AGENT_TOOL_NAME_ALIASES: Record<string, string> = {
 	write_to_file: "editor",
 };
 
-function resolveConfiguredAgentToolName(toolName: string): string {
+export function resolveConfiguredAgentToolName(toolName: string): string {
 	const normalized = toolName.trim().toLowerCase();
 	return CONFIGURED_AGENT_TOOL_NAME_ALIASES[normalized] ?? normalized;
 }
 
-function filterToolsForConfiguredAgent(
+/**
+ * Allowlist filter for a configured agent's delegated tool set. Exported for
+ * tests: an agent's prompt is NOT a security boundary — read-only stages
+ * (planner/reviewer) must be enforced through this actual tool allowlist.
+ */
+export function filterToolsForConfiguredAgent(
 	tools: AgentTool[],
 	agent: ConfiguredAgentConfig,
 ): AgentTool[] {

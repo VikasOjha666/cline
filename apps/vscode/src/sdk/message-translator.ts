@@ -1198,9 +1198,15 @@ export function buildToolApprovalAskMessage(toolName: string, input: unknown, ts
 		}
 	}
 
-	if (toolName === "spawn_agent") {
+	if (toolName === "spawn_agent" || toolName.startsWith("subagent_")) {
 		const parsedInput = parseToolInput(input)
-		const taskPrompt = getStringField(parsedInput, "task") ?? ""
+		// The generic spawn_agent tool takes `task`; configured-agent tools take
+		// `prompt`. Render both through the existing sub-agent approval card so
+		// approving a delegation shows exactly what the sub-agent was asked to
+		// do (and that it will then act autonomously).
+		const agentName = toolName.startsWith("subagent_") ? toolName.slice("subagent_".length) : undefined
+		const rawTask = getStringField(parsedInput, "task") ?? getStringField(parsedInput, "prompt") ?? ""
+		const taskPrompt = agentName && rawTask ? `${agentName}: ${rawTask}` : rawTask
 		return {
 			ts,
 			type: "ask",

@@ -482,3 +482,19 @@ describe("State Keys Type Safety", () => {
 		})
 	})
 })
+
+describe("enableConfiguredSubagents (fork feature)", () => {
+	it("defaults to true (Cline Pipeline Edition ships configured sub-agents enabled)", () => {
+		expect(SETTINGS_DEFAULTS.enableConfiguredSubagents).to.equal(true)
+	})
+
+	it("is registered as a settings key with a boolean runtime type", () => {
+		expect(isSettingsKey("enableConfiguredSubagents")).to.be.true
+		expect(typeof SETTINGS_DEFAULTS.enableConfiguredSubagents).to.equal("boolean")
+	})
+
+	it("is a plain persisted setting (not computed/async)", () => {
+		expect(isComputedProperty("enableConfiguredSubagents")).to.be.false
+		expect(isAsyncProperty("enableConfiguredSubagents")).to.be.false
+	})
+})

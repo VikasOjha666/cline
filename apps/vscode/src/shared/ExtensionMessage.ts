@@ -122,6 +122,8 @@ export interface ExtensionState {
 	compactionStrategy?: string
 	webSearchEnabled?: boolean
 	subagentsEnabled?: boolean
+	/** Fork feature: configured sub-agents (subagent_* tools) enabled. Defaults to true. */
+	enableConfiguredSubagents?: boolean
 	worktreesEnabled?: ClineFeatureSetting
 	favoritedModelIds: string[]
 	// NEW: Add workspace information

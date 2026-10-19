@@ -13,6 +13,7 @@ import type { McpHub } from "@/services/mcp/McpHub"
 export function buildToolPolicies(
 	_settings: AutoApprovalSettings,
 	mcpHub?: McpHub,
+	configuredAgentToolNames: string[] = [],
 ): Record<string, { enabled?: boolean; autoApprove?: boolean }> {
 	const policies: Record<string, { enabled?: boolean; autoApprove?: boolean }> = {}
 
@@ -26,6 +27,14 @@ export function buildToolPolicies(
 	set(["editor", "replace_in_file", "write_to_file", "apply_patch", "delete_file"])
 	set(["run_commands", "execute_command"])
 	set(["fetch_web_content", "web_fetch", "web_search"])
+
+	// Configured-agent delegation tools (`subagent_*`). The SDK defaults
+	// unlisted tools to enabled + autoApprove, which would let a delegation
+	// run with no approval at all; listing them forces the approval callback,
+	// which in turn always prompts (isToolAutoApproved returns false for these
+	// names). Approving once lets the child agent run many file operations
+	// autonomously, so this gate is the user's only oversight point.
+	set(configuredAgentToolNames)
 
 	if (mcpHub) {
 		for (const server of mcpHub.getServers()) {

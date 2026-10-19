@@ -1,3 +1,5 @@
+> **Cline Pipeline Edition** - this repository is an independent fork of [cline/cline](https://github.com/cline/cline) that adds a multi-model coding pipeline (four local-Ollama sub-agents: planner, generator, reviewer, editor) orchestrated in a single Act-mode task. The VS Code extension is published under the extension ID `pipeline-fork.cline-pipeline-edition` and installs alongside official Cline. See [`apps/vscode/README.md`](apps/vscode/README.md) for pipeline usage, the `enableConfiguredSubagents` setting, and fork-specific limitations. Upstream Cline documentation follows below.
+
 <p align="center">
   <img src="assets/icons/icon.png" width="80" alt="Cline" />
 </p>
@@ -232,4 +234,3 @@ Start with the [Contributing Guide](CONTRIBUTING.md). Join our [Discord](https:/
 
 ## License
 
-[Apache 2.0 © 2026 Cline Bot Inc.](./LICENSE)

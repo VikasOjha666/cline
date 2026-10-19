@@ -68,6 +68,11 @@ export {
 	syncStoredProviderRegistration,
 } from "../../../../sdk/packages/core/src/services/providers/local-provider-registry"
 export { captureGitSnapshot } from "../../../../sdk/packages/core/src/services/telemetry/core-events"
+// Configured-agent exports (fork feature: pipeline sub-agents). Re-export the
+// REAL implementations from SDK source so the session factory and pipeline
+// instructions tests exercise the production parser/loader/tool-name logic.
+export { parseConfiguredAgentConfig, loadConfiguredAgentConfigs } from "../../../../sdk/packages/core/src/extensions/tools/team/configured-agent-config"
+export { buildConfiguredAgentToolDescriptors, buildConfiguredAgentToolName } from "../../../../sdk/packages/core/src/extensions/tools/team/configured-agent-tool"
 
 export type GlobalCompactionStrategy = "basic" | "agentic"
 

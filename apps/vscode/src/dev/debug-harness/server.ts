@@ -1245,8 +1245,14 @@ class DebugHarness {
 	}): Promise<any> {
 		if (!this.app) throw new Error("VSCode not running")
 
-		// Build the URI
-		const extensionId = "saoudrizwan.claude-dev"
+		// Build the URI. Read the extension ID from package.json at runtime so
+		// this debug harness matches whatever extension identity the build has
+		// (fork publisher/name may differ from upstream).
+		const manifest = JSON.parse(fs.readFileSync(path.resolve(__script_dir, "../../../package.json"), "utf8")) as {
+			name: string
+			publisher: string
+		}
+		const extensionId = `${manifest.publisher}.${manifest.name}`
 		const scheme = "vscode"
 		const searchParams = new URLSearchParams()
 		if (params.code) searchParams.set("code", params.code)

@@ -308,6 +308,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		compactionStrategy: "basic",
 		webSearchEnabled: false,
 		subagentsEnabled: false,
+		enableConfiguredSubagents: true,
 		worktreesEnabled: { user: true, featureFlag: false },
 		favoritedModelIds: [],
 		lastDismissedInfoBannerVersion: 0,

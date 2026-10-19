@@ -275,6 +275,15 @@ const USER_SETTINGS_FIELDS = {
 	hooksEnabled: { default: true as boolean },
 	useAutoCondense: { default: true as boolean },
 	subagentsEnabled: { default: false as boolean },
+	/**
+	 * Fork feature (Cline Pipeline Edition): allows the main session to spawn
+	 * configured sub-agents (YAML profiles in `.cline/agents/`, exposed as
+	 * `subagent_*` tools). Defaults to TRUE in this fork. When false, or when
+	 * the session is in plan mode, `enableSpawnAgent` is forced off in the
+	 * session factory so neither configured agents nor the generic
+	 * `spawn_agent` tool are exposed.
+	 */
+	enableConfiguredSubagents: { default: true as boolean },
 	worktreesEnabled: { default: false as boolean },
 	preferredLanguage: { default: "English" as string },
 	mode: { default: "act" as Mode },

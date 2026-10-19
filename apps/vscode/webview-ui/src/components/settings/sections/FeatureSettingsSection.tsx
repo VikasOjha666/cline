@@ -39,6 +39,19 @@ const agentFeatures: FeatureToggle[] = [
 		stateKey: "useAutoCondense",
 		settingKey: "useAutoCondense",
 	},
+	{
+		id: "configured-subagents",
+		label: "Configured Sub-Agents",
+		description: (
+			<span>
+				Allow Cline to delegate to sub-agents defined in <code>.cline/agents/*.yaml</code> (Act mode only). Warning:
+				approving a delegation lets the sub-agent run <strong>multiple file operations autonomously</strong> without
+				individual approval prompts.
+			</span>
+		),
+		stateKey: "enableConfiguredSubagents",
+		settingKey: "enableConfiguredSubagents",
+	},
 ]
 
 const editorFeatures: FeatureToggle[] = [
@@ -151,6 +164,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		compactionStrategy,
 		webSearchEnabled,
 		subagentsEnabled,
+		enableConfiguredSubagents,
 		worktreesEnabled,
 		backgroundEditEnabled,
 		showFeatureTips,
@@ -163,6 +177,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		hooksEnabled,
 		useAutoCondense,
 		subagentsEnabled,
+		enableConfiguredSubagents,
 		worktreesEnabled: worktreesEnabled?.user,
 		backgroundEditEnabled,
 	}

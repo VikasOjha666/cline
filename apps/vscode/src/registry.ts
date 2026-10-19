@@ -30,6 +30,8 @@ const ClineCommands = {
 	JupyterGenerateCell: prefix + ".jupyterGenerateCell",
 	JupyterExplainCell: prefix + ".jupyterExplainCell",
 	JupyterImproveCell: prefix + ".jupyterImproveCell",
+	// Fork feature (Cline Pipeline Edition): install pipeline agent templates.
+	InitPipelineAgents: prefix + ".initPipelineAgents",
 }
 
 /**

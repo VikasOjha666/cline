@@ -1,6 +1,13 @@
 #!/bin/bash
 set -u
 
+# Windows/dev machines without the buf CLI cannot run proto lint; skip
+# gracefully instead of failing the whole build (CI still runs buf).
+if ! command -v buf >/dev/null 2>&1; then
+  echo "buf CLI not installed; skipping proto lint."
+  exit 0
+fi
+
 buf lint
 
 if ! buf format -w --exit-code; then
