@@ -116,16 +116,18 @@ let mockFetch: FetchFunction | undefined
 export const fetch: typeof globalThis.fetch = (() => {
 	// Note: Don't use Logger here; it may not be initialized.
 
-	let baseFetch: typeof globalThis.fetch = globalThis.fetch
-	// Note: See esbuild.mjs, process.env.IS_STANDALONE is statically rewritten
-	// to "true" or "false" (as strings) in the JetBrains/CLI build.
-	// We must use explicit string comparison because "false" is truthy in JS.
-	if (process.env.IS_STANDALONE === "true") {
-		// Configure undici with ProxyAgent
-		const agent = new EnvHttpProxyAgent({ bodyTimeout: 0, headersTimeout: 0 })
-		setGlobalDispatcher(agent)
-		baseFetch = undiciFetch as any as typeof globalThis.fetch
-	}
+	// Always run undici with the idle body timer disabled (bodyTimeout: 0).
+	//
+	// bodyTimeout only measures silence BETWEEN body chunks. A local model that
+	// is thinking before streaming its first token can easily sit silent for
+	// longer than undici's default (~30s), which raises
+	// `BodyTimeoutError: Body Timeout Error (UND_ERR_BODY_TIMEOUT)` even though
+	// the overall pipeline deadline (e.g. 50 minutes) is still far away.
+	// Setting bodyTimeout: 0 removes that idle read timer; the overall deadline
+	// is still enforced by AbortSignal.timeout at the caller/provider level.
+	const agent = new EnvHttpProxyAgent({ bodyTimeout: 0, headersTimeout: 0 })
+	setGlobalDispatcher(agent)
+	let baseFetch: typeof globalThis.fetch = undiciFetch as any as typeof globalThis.fetch
 
 	return ((input: string | URL | Request, init?: RequestInit): Promise<Response> =>
 		(mockFetch || baseFetch)(input, init)) as typeof globalThis.fetch
