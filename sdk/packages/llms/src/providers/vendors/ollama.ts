@@ -62,7 +62,7 @@ export function normalizeOllamaBaseUrl(
  * accepted-but-silent case, and 5 minutes matches the header-timeout default
  * other AI SDK-based agents use.
  */
-export const OLLAMA_DEFAULT_TIMEOUT_MS = 300_000;
+export const OLLAMA_DEFAULT_TIMEOUT_MS = 3_000_000;
 
 /**
  * Read the configured request timeout (the legacy `requestTimeoutMs`

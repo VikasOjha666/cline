@@ -198,7 +198,7 @@ export function createSpawnAgentTool(
 				throw error;
 			}
 		},
-		timeoutMs: 300000,
+		timeoutMs: 3000000,
 		retryable: false,
 	});
 }

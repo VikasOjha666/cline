@@ -122,7 +122,7 @@ export const fetch: typeof globalThis.fetch = (() => {
 	// We must use explicit string comparison because "false" is truthy in JS.
 	if (process.env.IS_STANDALONE === "true") {
 		// Configure undici with ProxyAgent
-		const agent = new EnvHttpProxyAgent({})
+		const agent = new EnvHttpProxyAgent({ bodyTimeout: 0, headersTimeout: 0 })
 		setGlobalDispatcher(agent)
 		baseFetch = undiciFetch as any as typeof globalThis.fetch
 	}
